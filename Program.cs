@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace AtividadeEncontroRemoto02
 {
@@ -6,7 +6,8 @@ namespace AtividadeEncontroRemoto02
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            PessoaFisica p1 = new PessoaFisica();
+            PessoaJuridica pj1 = new PessoaJuridica();
         }
     }
 }
