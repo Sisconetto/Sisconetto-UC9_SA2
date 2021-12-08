@@ -8,6 +8,8 @@ namespace AtividadeEncontroRemoto02
 
         public string CNPJ {get; set;}
 
+        public decimal rendimento {get; set;}
+
         private string RazaoSocial {get; set;}
 
         public bool ValidarCNPJ(string CNPJ)        

@@ -6,7 +6,11 @@ namespace AtividadeEncontroRemoto02
         
         private int Idfisica {get; set;}
 
-        public int CPF {get; set;}
+        public string CPF {get; set;}
+        
+        public decimal rendimento {get; set;}
+
+        public decimal impostoApagar {get; set;}
 
         public DateTime DataNascimento {get; set;}
 
@@ -51,7 +55,7 @@ namespace AtividadeEncontroRemoto02
 
             DateTime DataAtual = DateTime.Today;
 
-            double anos = (DataAtual - DataNascimento).TotalDays/365;
+            double anos = (DataAtual - DataNasc).TotalDays/365;
 
             if (anos >= 18){
 

@@ -1,14 +1,22 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Collections.Generic;
 
 
 namespace AtividadeEncontroRemoto02
 {
     class Program
     {
+        static List<Pessoa> pessoas;
+        static List<Endereco> enderecos;
+
         static void Main(string[] args)
         {   
+
+            List<PessoaFisica> listapf = new List<PessoaFisica>(); 
+            List<PessoaJuridica> listapj = new List<PessoaJuridica>();
+
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             Console.WriteLine(@$" 
@@ -38,15 +46,22 @@ namespace AtividadeEncontroRemoto02
 
             do        
             {
-                Thread.Sleep(5000);
+                Thread.Sleep(800);
                 Console.Clear();
                 Console.WriteLine($@"
 =============================================
 |           SELECIONE AS OPÇÕES             |
 |                                           |
-|  1 - PESSOA FISICA                        |
+|  --------- PESSOA FISICA --------------   |
+|  1 - Cadastrar Pessoa Fisica              |
+|  2 - Listar Pessoa Fisica                 |
+|  3 - Remover Pessoa Fisica                |
 |                                           |
-|  2 - PESSOA JURIDICA                      |
+|  --------- PESSOA JURIDICA ------------   |
+|  4 - Cadastrar Pessoa Juridica            |
+|  5 - Listar Pessoa Juridica               |
+|  6 - Remover Pessoa Juridica              |                                      
+|                                           |
 |                                           |
 |  0 - SAIR                                 |
 |                                           |
@@ -58,68 +73,175 @@ namespace AtividadeEncontroRemoto02
                 
                 switch(opcao)
                 {
-                    case "1":                      
+                    case "1":                     
 
                         PessoaFisica pfverificador = new PessoaFisica(); // Este será utilizado apenas para instaciar o seu metodo ValidadorddData
 
                         PessoaFisica pf = new PessoaFisica(); // método construtor, instanciando objeto
                         Endereco end = new Endereco();  // instanciando o objeto end, novo endereco
 
-                        end.logradouro = "Rua X";
-                        end.numero = 56;
-                        end.complemento = "Casa";
-                        end.EnderecoRJ = false;
+                       
+                        // Lista verificador de meses
+                        List<int> d31 = new List<int> {1, 3, 5, 7, 8, 10, 12};
+                        List<int> d30 = new List<int> {4, 6, 9, 11};
 
-                        pf.endereco = end;  // Passando um objeto inteiro para dentro do pf.endereco
-                        pf.CPF = 12343214;
-                        pf.nome = "Lucas";
-                        pf.DataNascimento = new DateTime(2000, 06, 15);
+                        
+                        Console.WriteLine($"Bem vindo ao sistema de cadastramento de pessoas fisicas ");
+                        Thread.Sleep(500);
+                                               
+                        // Digitando Nome
+                        Console.WriteLine($"Digite o nome..");
+                        pf.nome = Console.ReadLine();
+
+                        // Digitando CPF
+                        do{
+                            iniciocpf:
+                            Console.WriteLine($"Digite o CPF..");
+                            pf.CPF = Console.ReadLine();
+
+                            PessoaFisica cpfrepetido = listapf.Find(cadaitem => cadaitem.CPF == pf.CPF);
+
+                            if (cpfrepetido == null){
+                                Console.WriteLine($"CPF cadastrado com sucesso");
+                            } else {
+                                Console.WriteLine($"CPF ja cadastrado");
+                                goto iniciocpf;
+                            }
+                                                                    
+                        //FAZER VALIDACAO CPF//                        
+                        } while (pf.CPF.Length != 11);
+
+                        // Digitando Data com validações                        
+                        Console.WriteLine($"Digite a Data de Nascimento Dia, Mes e Ano");
+                        int dia, mes, ano;
+                        // Validando Mês 
+                        do {
+                            Console.WriteLine($"Mês de Nascimento?");
+                            mes = Convert.ToInt32(Console.ReadLine());
+                        } while (mes <= 0 || mes > 12);
+
+                        // Validando ano de 1900 até ano de hoje //
+                        do {
+                            Console.WriteLine($"Ano ?");
+                            ano = Convert.ToInt32(Console.ReadLine());
+                        } while (ano < 1900 || ano > DateTime.Now.Year);
+                        
+                        // Validando o dia de nascimento de acordo com o mes, incluindo ano bisexto
+                        bool validadordia = true;
+
+                        do {
+                            Console.WriteLine($"Dia ?");
+                            dia = Convert.ToInt32(Console.ReadLine());
+                            
+                            if (d31.Contains(mes)){
+                                if (dia < 1 || dia > 31){
+                                    validadordia = false;
+                                } else validadordia = true;
+                            }
+                            
+                            if (d30.Contains(mes)){
+                                if (dia < 1 || dia > 30){
+                                    validadordia = false;
+                                } else validadordia = true;
+                            }
+
+                            if (mes == 2){
+                                if (DateTime.IsLeapYear(ano) == true){
+                                    if (dia < 1 || dia > 29){
+                                        validadordia = false;
+                                    }else validadordia=true;
+                                }
+                                if (DateTime.IsLeapYear(ano) == false){
+                                    if (dia < 1 || dia > 28){
+                                    validadordia = false;
+                                    }else validadordia=true; 
+                                }
+                            }
+
+                        } while(validadordia == false);
+
+                        pf.DataNascimento = new DateTime(ano, mes, dia);
 
                         // Verificador de Idade da PF cadastrada //
-                        
                         if (pfverificador.ValidarDataNascimento(pf.DataNascimento) == true)
                         {
-                            Console.WriteLine($"Cadastro Aprovado");
+                            Console.WriteLine($"Cadastro Aprovado - Maior de Idade");
 
-                                string opcaoimposto;
+                            /// CADASTRANDO ENDERECO DA PESSOA FISICA
+                            Console.WriteLine($"Digite o Logradouro..");
+                            end.logradouro = Console.ReadLine();
+
+                            Console.WriteLine($"Digite o numero..");
+                            end.numero = Convert.ToInt32(Console.ReadLine());
+
+                            Console.WriteLine($"Digite o Complemento..(Aperte ENTER para vazio)");                        
+                            end.complemento = Console.ReadLine();
+
+                            Console.WriteLine($"O Endereço é Comercial S/N?");
+                            string endcomercial = Console.ReadLine().ToUpper();
+
+                            // Validacao para endereco comercial
+
+                            while ((endcomercial.ToUpper() != "S") && (endcomercial.ToUpper() != "N")){
+                                Console.WriteLine($"Digite Corretamente se o endereço é comercial S ou N");
+                                endcomercial = Console.ReadLine();
+                            }
+                            if (endcomercial == "S"){
+                                end.EnderecoRJ = true;
+                            } else {
+                                end.EnderecoRJ = false;
+                            }
+
+                            pf.endereco = end;  // Passando um objeto inteiro para dentro do pf.endereco
+
+                            Console.WriteLine($"Qual o valor da renda desta pessoa ?");
+                            pf.rendimento = Decimal.Parse(Console.ReadLine());
+                            listapf.Add(pf);
+                            Console.Clear();
+
+                            string opcaoimposto;    
+                                
+                            validacaoimposto:
+
+                            Console.WriteLine("Deseja calcular o imposto a ser tributado desta pessoa ?");
+                            Console.WriteLine($"Sim ou Não?");
+
+                            opcaoimposto = Console.ReadLine();
+
                             
-                                Console.WriteLine("Deseja calcular o imposto a ser tributado desta pessoa ?");
-                                Console.WriteLine($"Sim ou Não?");
+                            if (opcaoimposto.ToUpper() == "SIM")
+                            {
 
-                                opcaoimposto = Console.ReadLine();
+                                /*
+                                Console.WriteLine("Nome: {0} - CPF: {1} - Data de Nascimento: {2}. ", pf.nome, pf.CPF, pf.DataNascimento);                        
+                                Console.WriteLine("Rua: " + pf.endereco.logradouro + " Numero: " + pf.endereco.numero + " Complemento: " + pf.endereco.complemento);
+                                */
+                                pfverificador.PagarImposto(pf.rendimento);                                                                  
 
-                                if (opcaoimposto.ToUpper() == "SIM")
-                                {
-                                    Console.WriteLine($"Qual o valor da renda desta pessoa ?");
-                                    decimal renda = Decimal.Parse(Console.ReadLine());
-
-                                    Console.Clear();
-                                    Console.WriteLine("Nome: {0} - CPF: {1} - Data de Nascimento: {2}. ", pf.nome, pf.CPF, pf.DataNascimento);                        
-                                    Console.WriteLine("Rua: " + pf.endereco.logradouro + " Numero: " + pf.endereco.numero + " Complemento: " + pf.endereco.complemento);
-                                    pf.PagarImposto(renda);                                                                        
- 
-                                }  else if ((opcaoimposto.ToUpper() == "NAO") || (opcaoimposto.ToUpper() == "NÃO")) {
-                                    Console.WriteLine($"Imposto não será calculado");
-                                    Console.WriteLine("Nome: {0} - CPF: {1} - Data de Nascimento: {2}. ", pf.nome, pf.CPF, pf.DataNascimento);                        
-                                    Console.WriteLine("Rua: " + pf.endereco.logradouro + " Numero: " + pf.endereco.numero + " Complemento: " + pf.endereco.complemento);                                
-                                } else 
-                                {
-                                    Console.WriteLine("Opcao digitada para calculo de imposto inválida");                                    
-                                }                    
-                                                        
+                            }  else if ((opcaoimposto.ToUpper() == "NAO") || (opcaoimposto.ToUpper() == "NÃO")) {
+                                Console.WriteLine($"Imposto não será calculado");
+                                /*
+                                Console.WriteLine("Nome: {0} - CPF: {1} - Data de Nascimento: {2}. ", pf.nome, pf.CPF, pf.DataNascimento);                        
+                                Console.WriteLine("Rua: " + pf.endereco.logradouro + " Numero: " + pf.endereco.numero + " Complemento: " + pf.endereco.complemento);
+                                */                                
+                            } else 
+                            {
+                                Console.WriteLine("Opcao digitada para calculo de imposto inválida");
+                                goto validacaoimposto;                                    
+                            }                                                    
                         } else
 
                         {
                             Console.WriteLine($"Menor de Idade - Cadastro Reprovado");
                             
-                        }
+                        }                   
+                            
                         
                         // Console.WriteLine(pfverificador.ValidarDataNascimento(pf.DataNascimento)); 
                         // Neste caso estamos utilizando um outro objeto para verificar e validar a data de nascimento de outro objeto, boas praticas, pois..
-                        // em API pode dar um erro onde o mesmo objeto criado tem um verificador dele mesmo.
-                        
+                        // em API pode dar um erro onde o mesmo objeto criado tem um verificador dele mesmo.           
 
-                        
+
 
                         // 1º forma de mostra-los
                         //Console.WriteLine(pf.endereco.logradouro);       
@@ -137,14 +259,55 @@ namespace AtividadeEncontroRemoto02
                         // 4º Forma - Ou, desta forma ele considera os espaços da margem esquerda, para remove-los basta "encostar" as linhas a esquerda do console.
                         //Console.WriteLine($@"
                         //Rua: {pf.endereco.logradouro}, 
-                        //{pf.endereco.numero}");
-
-
-
+                        //{pf.endereco.numero}"); 
                         
                         break;
-                    
-                    case "2":
+
+                    case "2":        
+
+                        PessoaFisica verificador = new PessoaFisica();
+
+                        Console.WriteLine($"Bem vindo a lista de clientes \n");
+                        
+                        
+                        foreach (PessoaFisica cadaitem  in listapf) // por padrao cria como var, como é uso local pode-se usa-lo ou pode-se usar o tipo do objeto
+                        {
+                            Console.WriteLine($"");                            
+                            Console.WriteLine($"Nome: {cadaitem.nome} CPF: {cadaitem.CPF} Data de Nascimento: {cadaitem.DataNascimento}");
+                            Console.WriteLine($"Rua: {cadaitem.endereco.logradouro} Numero: {cadaitem.endereco.numero} Complemento: {cadaitem.endereco.complemento}");
+                            if (cadaitem.endereco.EnderecoRJ == true){
+                                Console.WriteLine($"Endereço Comercial"); 
+                            } else Console.WriteLine($"Endereço Residencial");
+                            verificador.PagarImposto(cadaitem.rendimento);
+                            Console.WriteLine($"-----------------------------------\n");
+                              
+                        }
+
+                        Thread.Sleep(1200);
+
+                        break;
+
+                        
+                    case "3":
+
+                        Console.WriteLine($"Digite o CPF que deseja remover do sistema");
+                        string cpfprocurado = Console.ReadLine();
+                                             
+                        PessoaFisica pessoaEncontrada = listapf.Find(cadaitem => cadaitem.CPF == cpfprocurado); // For each com IF, armazenando o retorno disso na variavel e se nao tiver ninguem não se faz nenhuma remocao
+
+                        if (pessoaEncontrada != null){
+                            listapf.Remove(pessoaEncontrada);
+                            Console.WriteLine($"Cadastro Removido");
+                            
+                        } else {
+                            Console.WriteLine($"CPF não encontrado");                            
+                        }
+                        
+            
+                    break;
+
+            
+                    case "4":
 
                         // ################################# ATIVIDADE ONLINE 04 ############################################ //
                         // Criar classe filha de pessoa juridica com CNPJ e razao social e somente permitir o cadastro com 14 numeros
@@ -174,11 +337,11 @@ namespace AtividadeEncontroRemoto02
                                 if (opcaoimposto.ToUpper() == "SIM")
                                 {
                                     Console.WriteLine($"Qual o valor da renda desta empresa ?");
-                                    decimal renda = Decimal.Parse(Console.ReadLine());
+                                    pj1.rendimento = Decimal.Parse(Console.ReadLine());
 
                                     Console.Clear();
                                     Console.WriteLine("CNPJ: {0}", pj1.CNPJ);  
-                                    pj1.PagarImposto(renda);
+                                    pj1.PagarImposto(pj1.rendimento);
     
                                 }  else if ((opcaoimposto.ToUpper() == "NAO") || (opcaoimposto.ToUpper() == "NÃO")) {
                                     Console.WriteLine("CNPJ: {0}", pj1.CNPJ);                                
@@ -187,7 +350,9 @@ namespace AtividadeEncontroRemoto02
                                 } else 
                                 {
                                     Console.WriteLine("Opcao digitada para calculo de imposto inválida");                                    
-                                }     
+                                }
+
+                                listapj.Add(pj1);     
                                 
                         } 
                         
@@ -198,6 +363,50 @@ namespace AtividadeEncontroRemoto02
                         }
 
                         break;
+
+                    
+
+                    case "5":
+
+                        
+                        PessoaJuridica verificadorpj = new PessoaJuridica();
+
+                        Console.WriteLine($"Bem vindo a lista de clientes \n");
+                        
+                        
+                        foreach (PessoaJuridica cadaitem  in listapj) // por padrao cria como var, como é uso local pode-se usa-lo ou pode-se usar o tipo do objeto
+                        {
+                            Console.WriteLine($"");                            
+                            Console.WriteLine($"CNPJ: {cadaitem.CNPJ} ");
+                            Console.WriteLine($"Rendimento: {cadaitem.rendimento}");
+                            verificadorpj.PagarImposto(cadaitem.rendimento);                            
+                            Console.WriteLine($"-----------------------------------\n");
+                              
+                        }
+
+                        Thread.Sleep(1200);
+
+                        
+
+                    break;
+
+
+                    case "6":
+
+                        Console.WriteLine($"Digite o CNPJ que deseja remover do sistema");
+                        string cnpjprocurado = Console.ReadLine();
+                                             
+                        PessoaJuridica cnpjencontrado = listapj.Find(cadaitem => cadaitem.CNPJ == cnpjprocurado); // For each com IF, armazenando o retorno disso na variavel e se nao tiver ninguem não se faz nenhuma remocao
+
+                        if (cnpjencontrado != null){
+                            listapj.Remove(cnpjencontrado);
+                            Console.WriteLine($"Cadastro Removido");
+                            
+                        } else {
+                            Console.WriteLine($"CNPJ não encontrado");                            
+                        }
+
+                    break;
 
                     case "0":
                         Console.Clear();
@@ -221,8 +430,8 @@ namespace AtividadeEncontroRemoto02
                         Thread.Sleep(1000);                        
                         Console.Clear();  
                         
-                        break;                     
-
+                        break;                                        
+                
                      
             }
 
